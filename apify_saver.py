@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+from datetime import datetime
 from dotenv import load_dotenv
 from apify_client import ApifyClient
 from mcp.server.fastmcp import FastMCP
@@ -8,11 +9,11 @@ from mcp.server.fastmcp import FastMCP
 #mcp = FastMCP("ApifyAutoSaver")
 load_dotenv()
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
-OUTPUT_DIR = r"C:\Users\EduardoGiannetti\Desktop\json"
+OUTPUT_DIR = r"C:\Users\EduardoGiannetti\Downloads\apifymcp\json"
 
 
 #@mcp.tool()
-def raspar_e_salvar_comentarios(post_url: str, filename: str = "comentarios.json") -> str:
+def raspar_e_salvar_comentarios(post_url: str, filename: str = None) -> str:
     """Raspa comentarios do Instagram pelo Apify via URL do post do instagram que o usuário mandar, 
     salva diretamente em JSON na pasta pré-definida e retorna os textos dos comentários já filtrados
     para a janela de contexto chat"""
@@ -32,6 +33,11 @@ def raspar_e_salvar_comentarios(post_url: str, filename: str = "comentarios.json
     items = list(client.dataset(run.default_dataset_id).iterate_items())
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
+    
+    if not filename:
+        agora = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"comentarios-{agora}.json"
+        
     file_path = os.path.join(OUTPUT_DIR, filename)
     
     with open(file_path, "w", encoding="utf-8") as f:
@@ -57,5 +63,5 @@ def raspar_e_salvar_comentarios(post_url: str, filename: str = "comentarios.json
 
 
 if __name__ == "__main__":
-    resultado = raspar_e_salvar_comentarios("https://www.instagram.com/reel/DarBPOcMSvH/?utm_source=ig_web_copy_link&stkn=MzRlODBiNWFlZA==", "comentarios.json")
+    resultado = raspar_e_salvar_comentarios("https://www.instagram.com/reel/DarBPOcMSvH/?utm_source=ig_web_copy_link&stkn=MzRlODBiNWFlZA==")
     print("\n" + resultado)

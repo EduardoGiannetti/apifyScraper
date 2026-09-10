@@ -6,7 +6,7 @@ using System.Text.Json.Serialization;
 
 public class Comentario
 {
-    [JsonPropertyName("text")]
+    [JsonPropertyName("message")]
     public string Text { get; set; }
 
     [JsonPropertyName("likeCount")]
@@ -51,14 +51,14 @@ class Program
         {
             int posicao = Particionar(lista, esquerda, direita);
             QuickSort(lista, esquerda, posicao - 1);
-            QuickSort(lista, posicao + 1, direita);
+            QuickSort(lista, posicao, direita);
         }
     }
 
     static void Main(string[] args)
     {
         // Recebe o caminho do arquivo JSON enviado pelo Python
-        string filePath = args.Length > 0 ? args[0] : "comentarios.json";
+        string filePath = args.Length > 0 ? args[0] : @"C:\Users\EduardoGiannetti\Downloads\apifymcp\json\comentarios.json";
 
         if (!File.Exists(filePath))
             return;

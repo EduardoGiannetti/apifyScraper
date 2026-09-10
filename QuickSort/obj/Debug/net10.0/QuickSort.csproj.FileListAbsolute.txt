@@ -12,3 +12,4 @@ C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\obj\Debug\net10.0\refint\
 C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\obj\Debug\net10.0\QuickSort.pdb
 C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\obj\Debug\net10.0\QuickSort.genruntimeconfig.cache
 C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\obj\Debug\net10.0\ref\QuickSort.dll
+C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\obj\Debug\net10.0\QuickSort.sourcelink.json
