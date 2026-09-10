@@ -7,6 +7,9 @@ using System.Text.Json.Serialization;
 public class Comentario
 {
     [JsonPropertyName("message")]
+    public string Message { get; set; }
+    
+    [JsonPropertyName("text")]
     public string Text { get; set; }
 
     [JsonPropertyName("likeCount")]
@@ -72,7 +75,12 @@ class Program
             QuickSort(comentarios, 0, comentarios.Count - 1);
 
             // Sobrescreve o arquivo JSON com a lista já ordenada
-            string jsonOrdenado = JsonSerializer.Serialize(comentarios, new JsonSerializerOptions { WriteIndented = true });
+            var options = new JsonSerializerOptions 
+            { 
+                WriteIndented = true, 
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull 
+            };
+            string jsonOrdenado = JsonSerializer.Serialize(comentarios, options);
             Console.WriteLine(jsonOrdenado);
             File.WriteAllText(filePath, jsonOrdenado);
         }
