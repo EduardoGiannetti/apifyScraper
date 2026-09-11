@@ -11,7 +11,6 @@ load_dotenv()
 APIFY_TOKEN = os.getenv("APIFY_TOKEN")
 OUTPUT_DIR = r"C:\Users\EduardoGiannetti\Downloads\apifymcp\json"
 
-
 @mcp.tool()
 def scrape_instagram(post_url: str, filename: str = None) -> str:
     """Use ESTA tool APENAS para extrair comentários de posts do Instagram.
@@ -22,15 +21,20 @@ def scrape_instagram(post_url: str, filename: str = None) -> str:
     client = ApifyClient(APIFY_TOKEN)
 
     # Executa o actor do Apify
-    url_limpa = post_url.split("?")[0]
+    try:
+        url_limpa = post_url.split("?")[0]
+    except Exception as e:
+        return f"Erro ao processar a URL: {e}"
+    
     run_input = {
-        "startUrls": [{"url": url_limpa}],
         "directUrls": [url_limpa],
-        "resultsLimit": 700,
+        "resultsLimit": 50,
     }
-
-    run = client.actor("apidojo/instagram-comments-scraper").call(run_input=run_input)
-
+    try:
+        run = client.actor("apify/instagram-comment-scraper").call(run_input=run_input)
+    except Exception as e:
+        return f"Erro ao executar o scraper: {e}"
+    
     items = list(client.dataset(run.default_dataset_id).iterate_items())
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -38,29 +42,42 @@ def scrape_instagram(post_url: str, filename: str = None) -> str:
     if not filename:
         agora = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"comentarios-{agora}.json"
-        
+    
     file_path = os.path.join(OUTPUT_DIR, filename)
     
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False, indent=2)
-        
-    subprocess.run([r"C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\bin\Debug\net10.0\QuickSort.exe", file_path], check=True)
+    try:
+        subprocess.run([r"C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\bin\Debug\net10.0\QuickSort.exe", file_path], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao executar o QuickSort, executando sem sort: {e}")
+        pass
+    
     with open(file_path, "r", encoding="utf-8") as f:
         comentarios_ordenados = json.load(f)
-        
+    
     comentarios_limpos = []
-    for item in comentarios_ordenados:
-        texto = item.get("text") or item.get("message") or ""
-        texto = texto.strip()
-        if texto:
-            comentarios_limpos.append(texto)
-
+    try:
+        for item in comentarios_ordenados:
+            try:
+                texto = item.get("text") or item.get("message") or ""
+                texto = texto.strip()
+                curtidas = item.get("diggCount") or item.get("likesCount") or 0
+                if texto:
+                    comentarios_limpos.append(f"[{curtidas} likes] {texto}")
+            except Exception as e:
+                print(f"Erro ao processar item: {item}, erro: {e}")
+                continue
+    except Exception as e:
+        return f"Erro ao processar os comentários: {e}"
+    
     # Limita o envio dos textos para não estourar a memória do chat se houver centenas
     amostra_comentarios = comentarios_limpos[:700]
     lista_texto = "\n".join([f"- {c}" for c in amostra_comentarios])
 
     return (f"Sucesso! {len(items)} comentários foram salvos no arquivo: {file_path}"
             f"\n\nAmostra dos comentários:\n{lista_texto}")
+    
 @mcp.tool()
 def scrape_tiktok(post_url: str, filename: str = None) -> str:
     """Use ESTA tool APENAS para extrair comentários de vídeos do TikTok.
@@ -71,15 +88,20 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
     client = ApifyClient(APIFY_TOKEN)
 
     # Executa o actor do Apify
-    url_limpa = post_url.split("?")[0]
+    try:
+        url_limpa = post_url.split("?")[0]
+    except Exception as e:
+        return f"Erro ao processar a URL: {e}"
+    
     run_input = {
-        "startUrls": [{"url": url_limpa}],
-        "directUrls": [url_limpa],
-        "maxItems": 700,
+        "postURLs": [url_limpa],
+        "commentsPerPost": 50,
     }
-
-    run = client.actor("apidojo/tiktok-comments-scraper").call(run_input=run_input)
-
+    try:
+        run = client.actor("clockworks/tiktok-comments-scraper").call(run_input=run_input)
+    except Exception as e:
+        return f"Erro ao executar o scraper: {e}"
+    
     items = list(client.dataset(run.default_dataset_id).iterate_items())
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -87,23 +109,35 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
     if not filename:
         agora = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"comentarios-{agora}.json"
-        
+    
     file_path = os.path.join(OUTPUT_DIR, filename)
     
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(items, f, ensure_ascii=False, indent=2)
-        
-    subprocess.run([r"C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\bin\Debug\net10.0\QuickSort.exe", file_path], check=True)
+    try:
+        subprocess.run([r"C:\Users\EduardoGiannetti\Downloads\apifymcp\QuickSort\bin\Debug\net10.0\QuickSort.exe", file_path], check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"Erro ao executar o QuickSort, executando sem sort: {e}")
+        pass
+    
     with open(file_path, "r", encoding="utf-8") as f:
         comentarios_ordenados = json.load(f)
     
     comentarios_limpos = []
-    for item in comentarios_ordenados:
-        texto = item.get("text") or item.get("message") or ""
-        texto = texto.strip()
-        if texto:
-            comentarios_limpos.append(texto)
-
+    try:
+        for item in comentarios_ordenados:
+            try:
+                texto = item.get("text") or item.get("message") or ""
+                texto = texto.strip()
+                curtidas = item.get("diggCount") or item.get("likesCount") or 0
+                if texto:
+                    comentarios_limpos.append(f"[{curtidas} likes] {texto}")
+            except Exception as e:
+                print(f"Erro ao processar item: {item}, erro: {e}")
+                continue
+    except Exception as e:
+        return f"Erro ao processar os comentários: {e}"
+    
     # Limita o envio dos textos para não estourar a memória do chat se houver centenas
     amostra_comentarios = comentarios_limpos[:700]
     lista_texto = "\n".join([f"- {c}" for c in amostra_comentarios])
@@ -112,6 +146,6 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
             f"\n\nAmostra dos comentários:\n{lista_texto}")
 
 if __name__ == "__main__":
-#    mcp.run()
-     resultado = scrape_tiktok("https://www.tiktok.com/@by.ariela/video/7672124343807216903?is_from_webapp=1&sender_device=pc&web_id=7683217763096036884")
-     print("\n" + resultado)
+   mcp.run()
+    #  resultado = scrape_tiktok("")
+    #  print("\n" + resultado)
