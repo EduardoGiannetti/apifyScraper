@@ -129,7 +129,11 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
             try:
                 texto = item.get("text") or item.get("message") or ""
                 texto = texto.strip()
-                curtidas = item.get("diggCount") or item.get("likesCount") or 0
+                curtidas = (item.get("diggCount")
+                or item.get("likesCount")
+                or item.get("likeCount") 
+                or 0
+                )
                 if texto:
                     comentarios_limpos.append(f"[{curtidas} likes] {texto}")
             except Exception as e:
@@ -146,6 +150,6 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
             f"\n\nAmostra dos comentários:\n{lista_texto}")
 
 if __name__ == "__main__":
-   mcp.run()
-    #  resultado = scrape_tiktok("")
-    #  print("\n" + resultado)
+#    mcp.run()
+   resultado = scrape_tiktok("https://www.tiktok.com/@doyouknowlinux/video/7652448130037812511?is_from_webapp=1&sender_device=pc&web_id=7683217763096036884")
+   print("\n" + resultado)
