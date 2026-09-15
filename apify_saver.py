@@ -1,6 +1,7 @@
 import json
 import os
 import subprocess
+import re
 from datetime import datetime
 from dotenv import load_dotenv
 from apify_client import ApifyClient
@@ -27,15 +28,27 @@ def scrape_instagram(post_url: str, filename: str = None) -> str:
         return f"Erro ao processar a URL: {e}"
     
     run_input = {
-        "directUrls": [url_limpa],
-        "resultsLimit": 50,
+        "postUrls": [url_limpa],
+        "maxCommentsPerPost": 3,
+        "includeFacebookComments": False
     }
     try:
-        run = client.actor("apify/instagram-comment-scraper").call(run_input=run_input)
+        run = client.actor("clappi/instagram-comments-scraper").call(run_input=run_input)
     except Exception as e:
         return f"Erro ao executar o scraper: {e}"
     
     items = list(client.dataset(run.default_dataset_id).iterate_items())
+    
+    for item in items:
+        # Verifica e limpa o campo "text"
+        if "text" in item and isinstance(item["text"], str):
+            # Substitui 2 ou mais 'k's seguidos (maiúsculos ou minúsculos) por nada
+            item["text"] = re.sub(r'(?i)k{2,}', '', item["text"]).strip()
+            
+        # Verifica e limpa o campo "message" (caso exista)
+        if "message" in item and isinstance(item["message"], str):
+            item["message"] = re.sub(r'(?i)k{2,}', '', item["message"]).strip()
+    
     
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
@@ -62,7 +75,7 @@ def scrape_instagram(post_url: str, filename: str = None) -> str:
             try:
                 texto = item.get("text") or item.get("message") or ""
                 texto = texto.strip()
-                curtidas = item.get("diggCount") or item.get("likesCount") or 0
+                curtidas = item.get("diggCount") or item.get("likes") or 0
                 if texto:
                     comentarios_limpos.append(f"[{curtidas} likes] {texto}")
             except Exception as e:
@@ -104,6 +117,16 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
     
     items = list(client.dataset(run.default_dataset_id).iterate_items())
     
+    for item in items:
+        # Verifica e limpa o campo "text"
+        if "text" in item and isinstance(item["text"], str):
+            # Substitui 2 ou mais 'k's seguidos (maiúsculos ou minúsculos) por nada
+            item["text"] = re.sub(r'(?i)k{2,}', '', item["text"]).strip()
+            
+        # Verifica e limpa o campo "message" (caso exista)
+        if "message" in item and isinstance(item["message"], str):
+            item["message"] = re.sub(r'(?i)k{2,}', '', item["message"]).strip()
+    
     os.makedirs(OUTPUT_DIR, exist_ok=True)
     
     if not filename:
@@ -128,9 +151,12 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
         for item in comentarios_ordenados:
             try:
                 texto = item.get("text") or item.get("message") or ""
+                if texto == "":
+                    print("Comentário vazio: {item}")
+                    continue
                 texto = texto.strip()
                 curtidas = (item.get("diggCount")
-                or item.get("likesCount")
+                or item.get("likes")
                 or item.get("likeCount") 
                 or 0
                 )
@@ -150,6 +176,6 @@ def scrape_tiktok(post_url: str, filename: str = None) -> str:
             f"\n\nAmostra dos comentários:\n{lista_texto}")
 
 if __name__ == "__main__":
-#    mcp.run()
-   resultado = scrape_tiktok("https://www.tiktok.com/@doyouknowlinux/video/7652448130037812511?is_from_webapp=1&sender_device=pc&web_id=7683217763096036884")
-   print("\n" + resultado)
+    # mcp.run()
+    resultado = scrape_instagram("https://www.instagram.com/reel/DarBPOcMSvH/?utm_source=ig_web_copy_link&stkn=MzRlODBiNWFlZA==")
+    print("\n" + resultado)

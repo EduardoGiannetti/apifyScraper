@@ -12,17 +12,17 @@ public class Comentario
     [JsonPropertyName("text")]
     public string Text { get; set; }
 
+    // Propriedades nulas se não existirem no JSON recebido
     [JsonPropertyName("diggCount")]
     public int? DiggCount { get; set; }
 
-    [JsonPropertyName("likesCount")]
+    [JsonPropertyName("likes")]
     public int? LikesCount { get; set; }
 
-    // Propriedade calculada utilizada pelo QuickSort
+    // Avalia qual parâmetro veio no JSON (mesmo que seja 0)
     [JsonIgnore]
     public int LikeCount => DiggCount ?? LikesCount ?? 0;
 }
-
 class Program
 {
     // Partição ajustada para ordenar do MAIOR para o MENOR (Decrescente)
